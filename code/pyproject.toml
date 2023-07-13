@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "project"
+version = "0.1.0"
+description = "Camera"
+authors = ["Marco Bartoli <marco.bartoli.dev@gmail.com>"]
+
+[tool.poetry.scripts]
+start = "project.server:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.95.2"
+uvicorn = "^0.22.0"
+python-opencv = "4.8.0.74"
+numpy = "1.25.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.3.1"
