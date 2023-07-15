@@ -4,7 +4,8 @@ import numpy
 from time import sleep
 import os
 
-stop_worker = False
+enabled_cams = [4]
+stop_worker = [False]*len(enabled_cams)
 IS_GUI = bool(os.environ.get('DISPLAY'))
 
 print("Cam loaded")
@@ -13,9 +14,10 @@ def isGUI():
     return IS_GUI
 
 # Defining a function motionDetection
-def motionDetection():
+def motionDetection(video_index):
+    print(f"Motion {video_index} started")
     # capturing video in real time
-    cap = cv2.VideoCapture(4)
+    cap = cv2.VideoCapture(video_index)
     win_name = "output"
     #cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
     cap.set(cv2.CAP_PROP_FPS, 10)
@@ -53,7 +55,7 @@ def motionDetection():
 
         sleep_time = 60
 
-        if stop_worker:
+        if stop_worker[enabled_cams.index(video_index)]:
             print("Stopping worker")
             break
 
@@ -66,9 +68,10 @@ def motionDetection():
     cap.release()
     if isGUI():
         cv2.destroyAllWindows()
+    print(f"Motion {video_index} stopped")
 
 def main():
-    motionDetection()
+    motionDetection(4)
 
 if __name__ == "__main__":
     main()

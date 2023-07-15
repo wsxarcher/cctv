@@ -8,12 +8,17 @@ from . import cam
 @asynccontextmanager
 async def lifespan(app):
     print("Starting")
-    t = Thread(target=cam.motionDetection)
-    t.start()
+    cam_workers = []
+    for idx in cam.enabled_cams:
+        t = Thread(target=cam.motionDetection, args=(idx,))
+        t.start()
+        cam_workers.append(t)
     yield
     print("Shutdown")
-    cam.stop_worker = True
-    t.join()
+    for i in range(len(cam.enabled_cams)):
+        cam.stop_worker[i] = True
+    for t in cam_workers:
+        t.join()
     importlib.reload(cam)
 
 app = FastAPI(lifespan=lifespan)
