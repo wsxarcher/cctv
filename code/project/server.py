@@ -1,7 +1,22 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import uvicorn
+from threading import Thread
+import importlib
+from . import cam
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app):
+    print("Starting")
+    t = Thread(target=cam.motionDetection)
+    t.start()
+    yield
+    print("Shutdown")
+    cam.stop_worker = True
+    t.join()
+    importlib.reload(cam)
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 async def root():
