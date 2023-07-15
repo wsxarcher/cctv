@@ -12,7 +12,7 @@ ENV POETRY_VIRTUALENVS_IN_PROJECT=1
 ENV POETRY_VIRTUALENVS_CREATE=1
 ENV POETRY_CACHE_DIR=/tmp/poetry_cache
 
-WORKDIR /final
+WORKDIR /app
 
 COPY pyproject.toml ./
 
@@ -22,13 +22,13 @@ FROM $BASE_IMAGE
 ARG POETRY_VERSION
 RUN pip install poetry==$POETRY_VERSION
 
-WORKDIR /final
+WORKDIR /app
 
-ENV VIRTUAL_ENV="/final/.venv"
-ENV PATH="/final/.venv/bin:$PATH"
+ENV VIRTUAL_ENV="/app/.venv"
+ENV PATH="/app/.venv/bin:$PATH"
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-COPY --from=builder /final/pyproject.toml ./pyproject.toml
+COPY --from=builder /app/pyproject.toml ./pyproject.toml
 
 COPY project ./project
 

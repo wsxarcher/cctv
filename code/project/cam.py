@@ -19,10 +19,12 @@ shared_frames_all = []
 
 enabled_cams = [4]
 
-for i in range(len(enabled_cams)):
+number_of_cams = len(enabled_cams)
+
+for i in range(number_of_cams):
     shared_frames_all.append(manager.dict())
 
-stop_worker = manager.list([False]*len(enabled_cams))
+stop_worker = manager.list([False]*number_of_cams)
 IS_GUI = bool(os.environ.get('DISPLAY'))
 
 print("Cam loaded")
@@ -87,9 +89,9 @@ def motionDetection(video_index):
             if cv2.contourArea(contour) < 900:
                 continue
             cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            cv2.putText(frame1, "STATUS: {}".format('MOTION DETECTED'), (10, 60), cv2.FONT_HERSHEY_SIMPLEX,
+            cv2.putText(frame1, "INTRUSION DETECTED", (10, 60), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (217, 10, 10), 2)
-            print("Motion detection!!")
+            print("INTRUSION detection!!")
 
         #cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
 
@@ -132,7 +134,7 @@ def motionDetection(video_index):
 def shutdown(threads):
     global stop_worker
     print("Shutting down cam!!")
-    for i in range(len(enabled_cams)):
+    for i in range(number_of_cams):
         stop_worker[i] = True
     for t in threads:
         t.join()
