@@ -10,10 +10,13 @@ import uvicorn
 from threading import Thread
 from multiprocessing import Queue
 import importlib
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi import HTTPException
 import uuid
+from . import database
+from . import schema
 from . import cam
+from . import db_logic
 
 @asynccontextmanager
 async def lifespan(app):
@@ -33,8 +36,21 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
+db_logic.create_user("admin", "password")
+db_logic.logout_everywhere("admin")
+
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
+async def index(request: Request):
+    return templates.TemplateResponse("template.html", { "request": request })
+
+@app.get("/login", response_class=HTMLResponse)
+async def login(request: Request):
+    return templates.TemplateResponse("login.html", { "request": request })
+
+@app.get("/cams", response_class=HTMLResponse)
+async def cams(request: Request):
+    if False:
+        return RedirectResponse("/login")
     return templates.TemplateResponse("cams.html", { "request": request, "number": cam.number_of_cams })
 
 @app.get("/number_cams")

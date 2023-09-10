@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <title>Cams</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <link href="/static/bootstrap.min.css" rel="stylesheet">
+        <script src="/static/bootstrap.bundle.min.js"></script>
+        <script src="/static/htmx.min.js"></script>
+
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-primary">
+            <a class="navbar-brand" href="#">Camera</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" hx-target="#page" hx-get="/cams">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" hx-target="#page" hx-get="/videos">Videos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" hx-target="#page" hx-get="/alerts">Alerts</a>
+                </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div id="page" class="container" hx-get="/cams" hx-trigger="load">
+            
+        </div>
+        <script>
+            document.body.addEventListener('htmx:confirm', function(evt) {
+                if (evt.detail.target.id == "page") {
+                    var streams = document.querySelectorAll('img.streaming');
+                    // stop streams when reload
+                    for (stream of streams)
+                        stream.src = ""
+                }
+            });
+        </script>
+    </body>
+</html>
