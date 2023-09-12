@@ -1,5 +1,7 @@
 # importing libraries
 import cv2
+from ultralytics import YOLO
+from ultralytics.utils.plotting import Annotator
 import numpy
 from time import sleep, monotonic
 import os
@@ -29,6 +31,7 @@ IS_GUI = bool(os.environ.get('DISPLAY'))
 TMP_STREAMING = os.environ.get('TMP_STREAMING')
 SEGMENTS_URL = "SEGMENTS_URL"
 
+model = YOLO('/usr/src/ultralytics/yolov8n.pt')
 print("Cam loaded")
 
 def streamer(video_index, watcher_id):
@@ -116,6 +119,17 @@ def motionDetection(video_index):
             print("INTRUSION detection!!")
 
         resized = cv2.resize(frame1,(640,480),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+        results = model(resized, verbose=False)
+        #print(result)
+
+        annotator = Annotator(resized)
+
+        for r in results:
+            for box in r.boxes:
+                b = box.xyxy[0]
+                c = box.cls
+                annotator.box_label(b, f"{r.names[int(c)]} {float(box.conf):.2}")
+
 
         writer.write(resized)
 
@@ -133,13 +147,13 @@ def motionDetection(video_index):
 
         for watcher_id, q in shared_frames_all[video_index].items():
             try:
-                flag, encoded_img = cv2.imencode('.jpg', frame1)
+                flag, encoded_img = cv2.imencode('.jpg', resized)
                 q.put((-frame_counter, encoded_img))
             except Exception as e:
                 print(e)
 
         if isGUI():
-            cv2.imshow(win_name, frame1)
+            cv2.imshow(win_name, resized)
         frame1 = frame2
         ret, frame2 = cap.read()
 

@@ -62,9 +62,14 @@ async def cams():
 @app.get("/streaming/{i}.m3u8")
 async def streaming_playlist(i: int, request: Request):
     path = TMP_STREAMING + "/" + str(i) + ".m3u8"
+    base_url = str(request.base_url)
+    print(base_url)
+    if "ngrok" in base_url:
+        base_url = base_url.replace("http://", "https://")
+    print(base_url)
     with open(path, "r") as f:
         content = f.read()
-        content = content.replace(cam.SEGMENTS_URL, str(request.base_url) + "streaming")
+        content = content.replace(cam.SEGMENTS_URL, base_url + "streaming")
         return Response(content=content, media_type="application/vnd")
 
 app.mount("/streaming", StaticFiles(directory=TMP_STREAMING), name="streaming")
