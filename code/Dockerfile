@@ -21,9 +21,13 @@ FROM $BASE_IMAGE
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list.d/debian.sources
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -P /tmp/
+RUN dpkg -i /tmp/cuda-keyring_1.1-1_all.deb && rm /tmp/cuda-keyring_1.1-1_all.deb
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get install -y build-essential libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools
 RUN apt-get install -y libpango1.0-dev libgraphene-1.0-dev libgtk-4-dev libcsound64-6.0 libcsound64-dev libdav1d-dev
+RUN apt-get install -y cuda-toolkit-11-7 libcudnn8=8.5.0.96-1+cuda11.7 cuda-cupti-11-7 libnccl2=2.14.3-1+cuda11.7
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
@@ -54,7 +58,7 @@ RUN git clone https://github.com/opencv/opencv.git
 
 WORKDIR /opencv
 
-#RUN git checkout 6694d87a23886182900cdb49876d98989cc6e16d
+RUN git checkout 6694d87a23886182900cdb49876d98989cc6e16d
 
 RUN mkdir build
 WORKDIR /opencv/build
@@ -74,6 +78,12 @@ RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D BUILD_EXAMPLES=ON ..
 
 RUN make install -j8
+
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt /usr/src/ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt /usr/src/ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt /usr/src/ultralytics/
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt /usr/src/ultralytics/
 
 WORKDIR /app
 
