@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import websockets
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 import uvicorn
 from threading import Thread
 from multiprocessing import Queue
@@ -17,6 +17,8 @@ from . import database
 from . import schema
 from . import cam
 from . import db_logic
+
+TMP_STREAMING = os.environ.get('TMP_STREAMING')
 
 @asynccontextmanager
 async def lifespan(app):
@@ -56,6 +58,16 @@ async def cams(request: Request):
 @app.get("/number_cams")
 async def cams():
     return {"number": cam.number_of_cams}
+
+@app.get("/streaming/{i}.m3u8")
+async def streaming_playlist(i: int, request: Request):
+    path = TMP_STREAMING + "/" + str(i) + ".m3u8"
+    with open(path, "r") as f:
+        content = f.read()
+        content = content.replace(cam.SEGMENTS_URL, str(request.base_url) + "streaming")
+        return Response(content=content, media_type="application/vnd")
+
+app.mount("/streaming", StaticFiles(directory=TMP_STREAMING), name="streaming")
 
 @app.get("/cam/{i}")
 async def stream(i: int):

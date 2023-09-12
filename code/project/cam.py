@@ -26,6 +26,8 @@ for i in range(number_of_cams):
 
 stop_worker = manager.list([False]*number_of_cams)
 IS_GUI = bool(os.environ.get('DISPLAY'))
+TMP_STREAMING = os.environ.get('TMP_STREAMING')
+SEGMENTS_URL = "SEGMENTS_URL"
 
 print("Cam loaded")
 
@@ -63,15 +65,35 @@ def motionDetection(video_index):
     cap = cv2.VideoCapture(enabled_cams[video_index])
     win_name = "output"
     #cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
-    cap.set(cv2.CAP_PROP_FPS, 10)
+    fps = 10
+    cap.set(cv2.CAP_PROP_FPS, fps)
+    get_fps = int(cap.get(cv2.CAP_PROP_FPS))
+    print(get_fps)
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) // 6
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) // 6
 
     wait_until_focus = monotonic() + 2
     while monotonic() < wait_until_focus:
         cap.read()
 
     # reading frames sequentially
-    ret, frame1 = cap.read()
+    ret, frame1 = cap.read() 
     ret, frame2 = cap.read()
+
+    print(width, height)
+
+    gst_pipeline = f'appsrc ! videoconvert ! x264enc tune=zerolatency insert-vui=1 key-int-max=30 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=3 target-duration=1 playlist-type=2'
+    writer = cv2.VideoWriter(gst_pipeline,
+                0, 10, (640, 480))
+    if not writer.isOpened():
+        print('video writer failed')
 
     while cap.isOpened():
 
@@ -92,6 +114,10 @@ def motionDetection(video_index):
             cv2.putText(frame1, "INTRUSION DETECTED", (10, 60), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (217, 10, 10), 2)
             print("INTRUSION detection!!")
+
+        resized = cv2.resize(frame1,(640,480),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+
+        writer.write(resized)
 
         #cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
 

@@ -4,7 +4,16 @@
 
     </div>
     <div class="col-md-8">
-        <img src="/cam/{{i}}" class="img-fluid streaming">
+        <video-js id="cam{{i}}" width="600" height="480" class="vjs-default-skin" controls>
+            <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
+        </video-js>
+        <script>
+            var player = videojs('cam{{i}}', {
+                autoplay: true,
+                muted: true
+            });
+        </script>
+        <!--<img src="/cam/{{i}}" class="img-fluid streaming">-->
     </div>
     <div class="col-md-2"></div>
 </div>
