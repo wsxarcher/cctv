@@ -79,20 +79,34 @@ RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
 
 RUN make install -j8
 
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt /usr/src/ultralytics/
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt /usr/src/ultralytics/
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt /usr/src/ultralytics/
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt /usr/src/ultralytics/
-
 WORKDIR /app
 
-COPY project ./project
+ARG USERNAME=user
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+RUN chown -R $USER_UID:$USER_GID .
+
+USER $USERNAME
+
+ADD --chown=$USER_UID:$USER_GID https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
+ADD --chown=$USER_UID:$USER_GID https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt /usr/src/ultralytics/
+ADD --chown=$USER_UID:$USER_GID https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt /usr/src/ultralytics/
+ADD --chown=$USER_UID:$USER_GID https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt /usr/src/ultralytics/
+ADD --chown=$USER_UID:$USER_GID https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt /usr/src/ultralytics/
+
+ENV VIRTUAL_ENV="/app/.venv"
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY --chown=$USER_UID:$USER_GID project ./project
+
+RUN poetry install
 
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
-
-RUN poetry install
 
 CMD ["start"]

@@ -1,11 +1,11 @@
 set -ex
 
-export VIDEO_DEVICE="/dev/video4"
+export VIDEO_DEVICES=(/dev/video4) # give user permission
 export HOST_PORT=8001
 export DEBUG=1
 export TMP_STREAMING="/tmp/streaming/"
 
-docker buildx build -t marcobartoli/fp .
+docker buildx build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t marcobartoli/fp .
 docker rm fp_container || true
 docker run -it \
     --name fp_container \
@@ -16,4 +16,4 @@ docker run -it \
     -v "$PWD/data:/app/data" \
     --mount "type=tmpfs,destination=$TMP_STREAMING" \
     -e "TMP_STREAMING=$TMP_STREAMING" \
-    --device "$VIDEO_DEVICE:$VIDEO_DEVICE" -p $HOST_PORT:8000 marcobartoli/fp $@
+    ${VIDEO_DEVICES[@]/#/--device=} -p $HOST_PORT:8000 marcobartoli/fp $@
