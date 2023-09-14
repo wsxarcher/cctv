@@ -10,7 +10,7 @@ import uvicorn
 from threading import Thread
 from multiprocessing import Queue
 import importlib
-from fastapi.responses import StreamingResponse, RedirectResponse
+from fastapi.responses import StreamingResponse, RedirectResponse, FileResponse
 from fastapi import HTTPException
 import uuid
 from . import database
@@ -71,15 +71,19 @@ async def login(request: Request, username: str = Form(), password: str = Form()
         response.set_cookie(key='token', value=token, httponly=True)
         response.headers["HX-Trigger"] = "loggedin"
     else:
-        raise HTTPException(status_code=401, detail="Wrong login details")
+        return HTMLResponse(content="Wrong login details", status_code=401)
     return response
 
 @app.get("/alerts", response_class=HTMLResponse)
-async def alerts(request: Request):
+async def alerts(request: Request, user = Depends(get_logged_user)):
+    if not user:
+        return RedirectResponse("/login")
     return templates.TemplateResponse("alerts.html", { "request": request })
 
 @app.get("/settings", response_class=HTMLResponse)
-async def settings(request: Request):
+async def settings(request: Request, user = Depends(get_logged_user)):
+    if not user:
+        return RedirectResponse("/login")
     return templates.TemplateResponse("settings.html", { "request": request })
 
 @app.get("/cams", response_class=HTMLResponse)
@@ -103,7 +107,12 @@ async def streaming_playlist(i: int, request: Request, user = Depends(get_logged
         content = content.replace(cam.SEGMENTS_URL, base_url + "streaming")
         return Response(content=content, media_type="application/vnd")
 
-app.mount("/streaming", StaticFiles(directory=TMP_STREAMING), name="streaming")
+@app.get("/streaming/{fragment}")
+async def streaming_fragment(fragment: str, request: Request, user = Depends(get_logged_user)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
+    file_path = os.path.join(TMP_STREAMING, os.path.basename(fragment))
+    return FileResponse(file_path)
 
 @app.get("/cam/{i}")
 async def stream(i: int, user = Depends(get_logged_user), token: str | None = Cookie(default=None)):
