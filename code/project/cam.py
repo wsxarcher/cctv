@@ -34,7 +34,7 @@ SEGMENTS_URL = "SEGMENTS_URL"
 model = YOLO('/usr/src/ultralytics/yolov8n.pt')
 print("Cam loaded")
 
-def streamer(video_index, watcher_id):
+def streamer(video_index, watcher_id, check_session):
     print(f"Stream {video_index} started")
     try:
         q = manager.PriorityQueue()
@@ -42,7 +42,7 @@ def streamer(video_index, watcher_id):
         while True:
             print(f"streaming cam {video_index} to {watcher_id}")
 
-            if stop_worker[video_index]:
+            if stop_worker[video_index] or check_session() is None:
                 raise Exception("stop")
 
             _, frame = q.get()

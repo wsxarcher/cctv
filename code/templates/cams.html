@@ -8,12 +8,12 @@
             <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
         </video-js>
         <script>
-            var player = videojs('cam{{i}}', {
+            window.videojsplayers.push(videojs('cam{{i}}', {
                 autoplay: true,
                 muted: true
-            });
+            }))
         </script>
-        <!--<img src="/cam/{{i}}" class="img-fluid streaming">-->
+        <img src="/cam/{{i}}" class="img-fluid streaming">
     </div>
     <div class="col-md-2"></div>
 </div>

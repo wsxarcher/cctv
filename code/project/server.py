@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import websockets
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response, Form, Cookie
 import uvicorn
 from threading import Thread
 from multiprocessing import Queue
@@ -39,32 +39,63 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 db_logic.create_user("admin", "password")
-db_logic.logout_everywhere("admin")
+#db_logic.logout_everywhere("admin")
+
+
+def get_logged_user(token: str | None = Cookie(default=None)):
+    if user := db_logic.is_logged(token):
+        return user
+    else:
+        return None
+
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("template.html", { "request": request })
 
+@app.get("/logout", response_class=HTMLResponse)
+async def logout(request: Request, token: str | None = Cookie(default=None)):
+    db_logic.logout(token)
+    response = templates.TemplateResponse("login.html", { "request": request })
+    response.headers["HX-Trigger"] = "loggedout"
+    return response
+
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):
     return templates.TemplateResponse("login.html", { "request": request })
 
+@app.post("/login", response_class=HTMLResponse)
+async def login(request: Request, username: str = Form(), password: str = Form()):
+    response = templates.TemplateResponse("login.html", { "request": request })
+    if token := db_logic.login(username, password):
+        response.set_cookie(key='token', value=token, httponly=True)
+        response.headers["HX-Trigger"] = "loggedin"
+    else:
+        raise HTTPException(status_code=401, detail="Wrong login details")
+    return response
+
+@app.get("/alerts", response_class=HTMLResponse)
+async def alerts(request: Request):
+    return templates.TemplateResponse("alerts.html", { "request": request })
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings(request: Request):
+    return templates.TemplateResponse("settings.html", { "request": request })
+
 @app.get("/cams", response_class=HTMLResponse)
-async def cams(request: Request):
-    if False:
+async def cams(request: Request, user = Depends(get_logged_user)):
+    if not user:
         return RedirectResponse("/login")
     return templates.TemplateResponse("cams.html", { "request": request, "number": cam.number_of_cams })
 
-@app.get("/number_cams")
-async def cams():
-    return {"number": cam.number_of_cams}
-
 @app.get("/streaming/{i}.m3u8")
-async def streaming_playlist(i: int, request: Request):
+async def streaming_playlist(i: int, request: Request, user = Depends(get_logged_user)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
     path = TMP_STREAMING + "/" + str(i) + ".m3u8"
     base_url = str(request.base_url)
-    print(base_url)
-    if "ngrok" in base_url:
+    # ngrok https is transparent
+    if "ngrok" in base_url or "devtunnels" in base_url:
         base_url = base_url.replace("http://", "https://")
     print(base_url)
     with open(path, "r") as f:
@@ -75,7 +106,9 @@ async def streaming_playlist(i: int, request: Request):
 app.mount("/streaming", StaticFiles(directory=TMP_STREAMING), name="streaming")
 
 @app.get("/cam/{i}")
-async def stream(i: int):
+async def stream(i: int, user = Depends(get_logged_user), token: str | None = Cookie(default=None)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Wrong login details")
     if i >= cam.number_of_cams:
         raise HTTPException(
             status_code=404,
@@ -83,7 +116,8 @@ async def stream(i: int):
         )
     watcher_id = uuid.uuid4()
     print("added watcher {} to cam {}".format(watcher_id, i))
-    return StreamingResponse(cam.streamer(i, watcher_id), media_type="multipart/x-mixed-replace;boundary=frame")
+    check_session = lambda token=token: get_logged_user(token)
+    return StreamingResponse(cam.streamer(i, watcher_id, check_session), media_type="multipart/x-mixed-replace;boundary=frame")
 
 def main():
     workers = os.environ.get("WORKERS", 4)
