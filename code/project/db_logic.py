@@ -15,12 +15,12 @@ def create_user(username, password):
         db.rollback()
     return db_user
 
-def login(username, password):
+def login(username, password, user_agent="", ip=""):
     try:
         user = db.query(User).filter_by(username=username).one()
         if user.password == password:
             token = secrets.token_hex(64)
-            session = Session(token=token, user=user)
+            session = Session(token=token, user=user, user_agent=user_agent, ip=ip)
             db.add(session)
             db.commit()
             return token
@@ -49,3 +49,10 @@ def logout_everywhere(username):
         db.commit()
     except:
         db.rollback()
+
+def sessions(user):
+    try:
+        sessions = db.query(Session).filter_by(user=user).all()
+        return sessions
+    except:
+        return []

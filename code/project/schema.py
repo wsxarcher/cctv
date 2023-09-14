@@ -24,6 +24,8 @@ class User(Base):
 class Session(Base):
     __tablename__ = "sessions"
     token = Column(String, index=True, unique=True, primary_key=True)
+    user_agent = Column(String)
+    ip = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     user = relationship("User", back_populates="sessions")

@@ -1,0 +1,38 @@
+<div class="row">
+    <div class="col-md-2">
+
+    </div>
+    <div class="col-md-8">
+        <h2>Sessions</h2>
+        {% for session in sessions %}
+
+        <div id="sessioncard{{ loop.index }}"
+        {% if loop.index == 1 %}
+        class="mb-5 card"
+        {% else %}
+        class="mb-1 card"
+        {% endif %}
+        >
+            <div class="card-header">
+                {% if loop.index == 1 %}
+                You
+                {% else %}
+                Session
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{session.ip}}</h5>
+                <p class="card-text">{{session.user_agent}}</p>
+                {% if loop.index != 1 %}
+                <a hx-delete="/session"  style="float:right"
+                    href="#" hx-vals='{"token": "{{session.token}}"}' hx-swap="outerHTML" hx-target="#sessioncard{{ loop.index }}" class="btn btn-primary">
+                    Close session
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+    <div class="col-md-2"></div>
+</div>
