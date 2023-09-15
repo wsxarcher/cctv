@@ -3,9 +3,47 @@
 
     </div>
     <div class="col-md-8">
-        <h1 class="mb-4"><i class="bi-tools"></i> {{ username }}</h1>
 
-        <h2>Sessions</h2>
+    <h1 class="mb-4"><i class="bi-tools"></i> {{ username }}</h1>
+    </div>
+    <div class="col-md-2">
+
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2">
+
+    </div>
+    <div class="col-md-8">
+        <h3>Streaming method </h3>
+        <form hx-post="/streamingmethod">
+            <div class="form-outline mb-4">
+                <select class="form-select" aria-label="">
+                    {% for method in streamingmethods %}
+                    <option value="{{method}}" 
+                    {% if method == streamingmethod %} selected {% endif %}
+                    >{{method | upper}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button id="login-submit" type="submit" class="btn btn-primary btn-block mb-4" style="float:right">Save</button>
+          </form>
+    </div>
+    <div class="col-md-2">
+
+    </div>
+</div>
+
+
+
+<div class="row">
+    <div class="col-md-2">
+
+    </div>
+    <div class="col-md-8">
+        <h3>Sessions</h3>
         {% for session in sessions %}
 
         <div id="sessioncard{{ loop.index }}"
@@ -35,6 +73,30 @@
         </div>
 
         {% endfor %}
+    </div>
+    <div class="col-md-2"></div>
+</div>
+
+<div class="row">
+    <div class="col-md-2">
+
+    </div>
+    <div class="col-md-8">
+
+        <h3>Change password</h3>
+        <form hx-post="/password">
+            <div class="form-outline mb-4">
+              <input type="password" id="old-input" name="old" class="form-control" />
+              <label class="form-label" for="old-input">Old password</label>
+            </div>
+          
+            <div class="form-outline mb-4">
+              <input type="password" id="password-input" name="password" class="form-control" />
+              <label class="form-label" for="password-input">New password</label>
+            </div>
+          
+            <button id="login-submit" type="submit" class="btn btn-primary btn-block mb-4" style="float:right">Change</button>
+          </form>
     </div>
     <div class="col-md-2"></div>
 </div>

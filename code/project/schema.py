@@ -1,12 +1,16 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
 import secrets
+import enum
 
 from .database import Base, SessionLocal, engine
 from sqlalchemy_utils import PasswordType, force_auto_coercion
 
 force_auto_coercion()
 
+class StreamingMethod(enum.Enum):
+    hls = 1
+    mjpeg = 2
 
 class User(Base):
     __tablename__ = "users"
@@ -18,6 +22,7 @@ class User(Base):
             'pbkdf2_sha512',
         ],
     ))
+    streaming_method = Column(Enum(StreamingMethod), default=StreamingMethod.hls)
 
     sessions = relationship("Session", back_populates="user")
 

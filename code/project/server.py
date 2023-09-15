@@ -87,7 +87,7 @@ async def login(
 ):
     response = templates.TemplateResponse("login.html", {"request": request})
     if token := db_logic.login(username, password, user_agent, request.client.host):
-        response.set_cookie(key="token", value=token, httponly=True)
+        response.set_cookie(key="token", value=token, httponly=True, samesite='strict')
         response.headers["HX-Trigger"] = "loggedin"
     else:
         return HTMLResponse(content="Wrong login details", status_code=401)
@@ -124,7 +124,7 @@ async def settings(
         0, sessions.pop(list(map(lambda s: s["token"] == token, sessions)).index(True))
     )
     return templates.TemplateResponse(
-        "settings.html", {"request": request, "sessions": sessions, "username": user.username }
+        "settings.html", {"request": request, "sessions": sessions, "username": user.username, "streamingmethods": schema.StreamingMethod._member_names_, "streamingmethod": user.streaming_method.name }
     )
 
 
