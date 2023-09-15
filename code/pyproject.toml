@@ -15,8 +15,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.103.1"
+requests = "^2.31.0"
 uvicorn = "^0.23.2"
-#opencv-python-headless = "^4.8.0.76"
+#opencv-python-headless = "^4.8.0.76" compiled in the docker with gstreamer
 ultralytics = "^8.0.176"
 numpy = "^1.25.2"
 websockets = "^11.0.3"

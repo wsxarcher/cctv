@@ -123,7 +123,7 @@ async def settings(
         0, sessions.pop(list(map(lambda s: s["token"] == token, sessions)).index(True))
     )
     return templates.TemplateResponse(
-        "settings.html", {"request": request, "sessions": sessions}
+        "settings.html", {"request": request, "sessions": sessions, "username": user.username }
     )
 
 

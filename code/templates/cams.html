@@ -4,16 +4,27 @@
 
     </div>
     <div class="col-md-8">
-        <video-js id="cam{{i}}" width="600" height="480" class="vjs-default-skin" controls>
-            <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
-        </video-js>
+        <div class="card text-center">
+            <div class="card-header">
+                <h3>
+                    <i class="bi-webcam"></i> Camera {{i}}
+                </h3>
+            </div>
+            <div class="card-body mx-0 px-0">
+                <video-js id="cam{{i}}" class="vjs-default-skin" controls>
+                    <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
+                </video-js>
+            </div>
+          </div>
         <script>
             window.videojsplayers.push(videojs('cam{{i}}', {
                 autoplay: true,
-                muted: true
+                muted: true,
+                responsive: true,
+                fluid: true
             }))
         </script>
-        <img src="/cam/{{i}}" class="img-fluid streaming">
+        <!--<img src="/cam/{{i}}" class="img-fluid streaming">-->
     </div>
     <div class="col-md-2"></div>
 </div>
