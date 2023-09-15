@@ -1,4 +1,4 @@
-# importing libraries
+import re
 import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
@@ -19,7 +19,19 @@ manager.start()
 
 shared_frames_all = []
 
-enabled_cams = [4]
+
+def get_dev_cameras():
+    cams = []
+    devs = os.listdir("/dev")
+    match_name = "index"
+    for dev in devs:
+        matches = re.match(fr"video(?P<{match_name}>\d+)", dev)
+        if matches:
+            index = int(matches.groupdict()[match_name])
+            cams.append(index)
+    return sorted(cams)
+
+enabled_cams = get_dev_cameras()
 
 number_of_cams = len(enabled_cams)
 

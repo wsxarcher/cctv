@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from .database import *
 from .schema import *
 
@@ -20,7 +21,8 @@ def login(username, password, user_agent="", ip=""):
         user = db.query(User).filter_by(username=username).one()
         if user.password == password:
             token = secrets.token_hex(64)
-            session = Session(token=token, user=user, user_agent=user_agent, ip=ip)
+            login_time = datetime.now(timezone.utc).replace(microsecond=0)
+            session = Session(token=token, user=user, user_agent=user_agent, ip=ip, login_time=login_time)
             db.add(session)
             db.commit()
             return token

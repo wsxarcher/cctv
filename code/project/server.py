@@ -117,6 +117,7 @@ async def settings(
                 "token": session_db.token,
                 "user_agent": session_db.user_agent,
                 "ip": session_db.ip,
+                "login_time": session_db.login_time,
             }
         )
     sessions.insert(

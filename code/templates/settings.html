@@ -3,7 +3,7 @@
 
     </div>
     <div class="col-md-8">
-        <h1 class="mb-4"><i class="bi-gear"></i> {{ username }}</h1>
+        <h1 class="mb-4"><i class="bi-tools"></i> {{ username }}</h1>
 
         <h2>Sessions</h2>
         {% for session in sessions %}
@@ -19,15 +19,15 @@
                 {% if loop.index == 1 %}
                 You
                 {% else %}
-                Session
+                {{session.ip}}
                 {% endif %}
             </div>
             <div class="card-body">
-                <h5 class="card-title">{{session.ip}}</h5>
+                <h5 class="card-title">{{session.login_time}} UTC</h5>
                 <p class="card-text">{{session.user_agent}}</p>
                 {% if loop.index != 1 %}
                 <a hx-delete="/session"  style="float:right"
-                    href="#" hx-vals='{"token": "{{session.token}}"}' hx-swap="outerHTML" hx-target="#sessioncard{{ loop.index }}" class="btn btn-primary">
+                    href="#" hx-vals='{"token": "{{session.token}}"}' hx-swap="outerHTML" hx-target="#sessioncard{{ loop.index }}" class="btn btn-danger">
                     Close session
                 </a>
                 {% endif %}

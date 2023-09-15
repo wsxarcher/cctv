@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 import secrets
 
@@ -26,6 +26,7 @@ class Session(Base):
     token = Column(String, index=True, unique=True, primary_key=True)
     user_agent = Column(String)
     ip = Column(String)
+    login_time = Column(DateTime)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     user = relationship("User", back_populates="sessions")
