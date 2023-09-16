@@ -8,11 +8,10 @@
             <div class="card-header">
                 <h3>
                     <i class="bi-webcam"></i> Camera {{i}} &nbsp;&nbsp;&nbsp;
-                    <input type="checkbox" class="btn-check" id="btn-check-outlined" autocomplete="off">
-                    <label class="btn btn-outline-primary s-4" for="btn-check-outlined">Intrusion detection</label>
+                    <a hx-get="/settings/intrusiondetection/{{i}}" hx-trigger="load" hx-swap="outerHTML"></a>
                 </h3>
             </div>
-            <div class="card-body mx-0 px-0 pt-0 pb-1" style="overflow: hidden">
+            <div class="card-body mx-0 px-0 pt-0 pb-1">
                 <video-js id="cam{{i}}" class="vjs-default-skin" controls>
                     <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
                 </video-js>

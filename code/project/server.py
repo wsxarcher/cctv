@@ -54,13 +54,13 @@ def get_logged_user(token: str | None = Cookie(default=None)):
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("template.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/logout", response_class=HTMLResponse)
 async def logout(request: Request, token: str | None = Cookie(default=None)):
     db_logic.logout(token)
-    response = templates.TemplateResponse("login.html", {"request": request})
+    response = templates.TemplateResponse("pages/login.html", {"request": request})
     response.headers["HX-Trigger"] = "loggedout"
     return response
 
@@ -68,14 +68,14 @@ async def logout(request: Request, token: str | None = Cookie(default=None)):
 @app.delete("/session", response_class=HTMLResponse)
 async def session_delete(request: Request, token: str = Form()):
     db_logic.logout(token)
-    response = templates.TemplateResponse("login.html", {"request": request})
+    response = templates.TemplateResponse("pages/login.html", {"request": request})
     response.headers["HX-Trigger"] = "loggedout"
     return Response(content="")
 
 
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("pages/login.html", {"request": request})
 
 
 @app.post("/login", response_class=HTMLResponse)
@@ -85,7 +85,7 @@ async def login(
     password: str = Form(),
     user_agent: str | None = Header(default=None),
 ):
-    response = templates.TemplateResponse("login.html", {"request": request})
+    response = templates.TemplateResponse("pages/login.html", {"request": request})
     if token := db_logic.login(username, password, user_agent, request.client.host):
         response.set_cookie(key="token", value=token, httponly=True, samesite='strict')
         response.headers["HX-Trigger"] = "loggedin"
@@ -98,7 +98,7 @@ async def login(
 async def alerts(request: Request, user=Depends(get_logged_user)):
     if not user:
         return RedirectResponse("/login")
-    return templates.TemplateResponse("alerts.html", {"request": request})
+    return templates.TemplateResponse("pages/alerts.html", {"request": request})
 
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -124,16 +124,67 @@ async def settings(
         0, sessions.pop(list(map(lambda s: s["token"] == token, sessions)).index(True))
     )
     return templates.TemplateResponse(
-        "settings.html", {"request": request, "sessions": sessions, "username": user.username, "streamingmethods": schema.StreamingMethod._member_names_, "streamingmethod": user.streaming_method.name }
+        "pages/settings.html", {"request": request, "sessions": sessions, "username": user.username }
     )
 
+@app.post("/settings/passwordchange", response_class=HTMLResponse)
+async def passwordchange(
+    request: Request,
+    old: None | str = Form(None),
+    password: None | str = Form(None),
+    user=Depends(get_logged_user),
+):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
+    error = None
+    if password == "a":
+        error = "AA"
+    return templates.TemplateResponse("fragments/passwordchange.html", { "request": request, "poperror": error })
+    
+    
+@app.post("/settings/streamingmethod", response_class=HTMLResponse)
+async def streamingmethod(
+    request: Request,
+    method: None | str = Form(None),
+    user=Depends(get_logged_user),
+):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
+    if not method:
+        method = user.streaming_method.name
+    else:
+        method = user.streaming_method.name
+    return templates.TemplateResponse("fragments/streamingmethod.html", { "request": request, "streamingmethods": schema.StreamingMethod._member_names_, "streamingmethod": method })
+
+@app.post("/settings/intrusiondetection/{i}", response_class=HTMLResponse)
+async def setintrusiondetection(
+    request: Request,
+    i: int,
+    enable: None | str = Form(None),
+    user=Depends(get_logged_user),
+):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
+    enabled = db_logic.intrusiondetection(i, enable=True if enable and enable == "on" else False)
+    return templates.TemplateResponse("fragments/intrusiondetection.html", { "request": request, "enabled": enabled, "i": i })
+
+@app.get("/settings/intrusiondetection/{i}", response_class=HTMLResponse)
+async def getintrusiondetection(
+    request: Request,
+    i: int,
+    user=Depends(get_logged_user),
+):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
+    enabled = db_logic.intrusiondetection(i)
+    return templates.TemplateResponse("fragments/intrusiondetection.html", { "request": request, "enabled": enabled, "i": i })
 
 @app.get("/cams", response_class=HTMLResponse)
 async def cams(request: Request, user=Depends(get_logged_user)):
     if not user:
         return RedirectResponse("/login")
     return templates.TemplateResponse(
-        "cams.html", {"request": request, "number": cam.number_of_cams}
+        "pages/cams.html", {"request": request, "number": cam.number_of_cams}
     )
 
 

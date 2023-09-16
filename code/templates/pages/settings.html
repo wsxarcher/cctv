@@ -17,19 +17,8 @@
     </div>
     <div class="col-md-8">
         <h3>Streaming method</h3>
-        <form hx-post="/streamingmethod">
-            <div class="form-outline mb-4">
-                <select class="form-select" aria-label="">
-                    {% for method in streamingmethods %}
-                    <option value="{{method}}" 
-                    {% if method == streamingmethod %} selected {% endif %}
-                    >{{method | upper}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <button id="login-submit" type="submit" class="btn btn-primary btn-block mb-4" style="float:right">Save</button>
-          </form>
+        <form hx-post="/settings/streamingmethod" hx-swap="outerHTML" hx-trigger="load">
+        </form>
     </div>
     <div class="col-md-2">
 
@@ -82,21 +71,8 @@
 
     </div>
     <div class="col-md-8">
-
         <h3>Change password</h3>
-        <form hx-post="/password">
-            <div class="form-outline mb-4">
-              <input type="password" id="old-input" name="old" class="form-control" />
-              <label class="form-label" for="old-input">Old password</label>
-            </div>
-          
-            <div class="form-outline mb-4">
-              <input type="password" id="password-input" name="password" class="form-control" />
-              <label class="form-label" for="password-input">New password</label>
-            </div>
-          
-            <button id="login-submit" type="submit" class="btn btn-primary btn-block mb-4" style="float:right">Change</button>
-          </form>
+        <form hx-post="/settings/passwordchange" hx-swap="outerHTML" hx-trigger="load"></form>
     </div>
     <div class="col-md-2"></div>
 </div>

@@ -1,0 +1,13 @@
+<form hx-post="/settings/streamingmethod" hx-swap="outerHTML">
+    <div class="form-outline mb-4">
+        <select name="method" class="form-select" aria-label="">
+            {% for method in streamingmethods %}
+            <option value="{{method}}" 
+            {% if method == streamingmethod %} selected {% endif %}
+            >{{method | upper}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-block mb-4" style="float:right" data-loading-disable>Save</button>
+  </form>

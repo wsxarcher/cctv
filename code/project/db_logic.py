@@ -58,3 +58,22 @@ def sessions(user):
         return sessions
     except:
         return []
+
+def intrusiondetection(camera_index: int, enable=None):
+    try:
+        camera = db.query(Camera).filter_by(id=camera_index).first()
+        if enable == None:
+            if camera:
+                return camera.detection_enabled
+            else:
+                return True
+        else:
+            if camera:
+                camera.detection_enabled = enable
+            else:
+                camera = Camera(id=camera_index, detection_enabled=enable)
+                db.add(camera)
+            db.commit()
+            return enable
+    except Exception as e:
+        raise e

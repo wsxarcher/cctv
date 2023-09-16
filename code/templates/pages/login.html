@@ -1,4 +1,4 @@
-<form hx-post="/login" hx-ext="disable-element" hx-disable-element="#login-submit">
+<form hx-post="/login" hx-ext="disable-element">
   <div class="form-outline mb-4">
     <input type="text" id="username-input" name="username" class="form-control" />
     <label class="form-label" for="username-input">Username</label>
@@ -9,5 +9,5 @@
     <label class="form-label" for="password-input">Password</label>
   </div>
 
-  <button id="login-submit" type="submit" class="btn btn-primary btn-block mb-4" style="float:right">Login</button>
+  <button id="login-submit" type="submit" class="btn btn-primary btn-block mb-4" style="float:right" data-loading-disable>Login</button>
 </form>
