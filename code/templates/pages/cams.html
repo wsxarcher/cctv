@@ -12,17 +12,21 @@
                 </h3>
             </div>
             <div class="card-body mx-0 px-0 pt-0 pb-1">
-                <video-js id="cam{{i}}" class="vjs-default-skin" controls>
+                <video-js id="cam{{i}}" class="vjs-default-skin" controls playsinline>
                     <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
                 </video-js>
             </div>
           </div>
         <script>
             window.videojsplayers.push(videojs('cam{{i}}', {
+                src: "/streaming/{{i}}.m3u8",
+                type: "application/x-mpegURL",
                 autoplay: true,
                 muted: true,
                 responsive: true,
-                fluid: true
+                fluid: true,
+                liveui: true,
+                html5: { hls: { overrideNative: true }, nativeVideoTracks: false, nativeAudioTracks: false, nativeTextTracks: false }
             }))
         </script>
         <!--<img src="/cam/{{i}}" class="img-fluid streaming">-->

@@ -124,7 +124,7 @@ def motionDetection(video_index):
 
     print(width, height)
 
-    gst_pipeline = f'appsrc ! videoconvert ! x264enc tune=zerolatency insert-vui=1 key-int-max=30 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=3 target-duration=1 playlist-type=2'
+    gst_pipeline = f'appsrc is-live=true block=true ! videoconvert ! x264enc tune=zerolatency key-int-max=1 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=5 target-duration=2 playlist-type=2'
     writer = cv2.VideoWriter(gst_pipeline,
                 0, 10, (640, 480))
     if not writer.isOpened():

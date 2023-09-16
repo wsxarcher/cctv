@@ -88,6 +88,12 @@
                     }
                     window.videojsplayers = []
                 }
+
+                window.addEventListener('focus', function() {
+                    for (videojsplayer of window.videojsplayers) {
+                        videojsplayer.liveTracker.seekToLiveEdge()
+                    }
+                });
             });
 
             window.videojsplayers = []

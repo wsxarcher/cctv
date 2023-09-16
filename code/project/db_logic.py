@@ -68,12 +68,15 @@ def intrusiondetection(camera_index: int, enable=None):
             else:
                 return True
         else:
-            if camera:
-                camera.detection_enabled = enable
-            else:
-                camera = Camera(id=camera_index, detection_enabled=enable)
-                db.add(camera)
-            db.commit()
+            try:
+                if camera:
+                    camera.detection_enabled = enable
+                else:
+                    camera = Camera(id=camera_index, detection_enabled=enable)
+                    db.add(camera)
+                db.commit()
+            except:
+                db.rollback()
             return enable
     except Exception as e:
         raise e
