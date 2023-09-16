@@ -68,9 +68,7 @@
                         title: "Are you sure?",
                         text: "Do you want to delete the session?",
                         icon: "warning",
-                        showCancelButton: true,
-                        buttons: true,
-                        dangerMode: true,
+                        showCancelButton: true
                     }).then((result) => {
                         if (result.isConfirmed) {
                             evt.detail.issueRequest();

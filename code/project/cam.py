@@ -8,10 +8,12 @@ import os
 from os import getpid, getppid
 from threading import current_thread
 import itertools
+from glob import glob
 from multiprocessing.managers import SyncManager
 from queue import PriorityQueue
 # import manager dict multiprocessing
 # from multiprocessing.managers import BaseManager
+from . import db_logic
 
 manager = SyncManager()
 manager.register('PriorityQueue', PriorityQueue)
@@ -72,8 +74,26 @@ def streamer(video_index, watcher_id, check_session):
 def isGUI():
     return IS_GUI
 
+def delete_old_tmp():
+    for playlist in glob(os.path.join(TMP_STREAMING, "*.m3u8")):
+        try:
+            print("Removing {playlist}")
+            os.remove(playlist)
+        except OSError:
+            print("Error while deleting file old playlist")
+
+    for fragment in glob(os.path.join(TMP_STREAMING, "*.ts")):
+        try:
+            print("Removing {fragment}")
+            os.remove(fragment)
+        except OSError:
+            print("Error while deleting file old fragment")
+
 # Defining a function motionDetection
 def motionDetection(video_index):
+    delete_old_tmp()
+    seconds_check_settings = 3
+    detection_enabled = db_logic.intrusiondetection(video_index)
     frame_counter = 0
     print(f"Motion {video_index} started")
     # capturing video in real time
@@ -111,36 +131,43 @@ def motionDetection(video_index):
         print('video writer failed')
 
     while cap.isOpened():
-
+        if frame_counter % fps*seconds_check_settings == 0:
+            detection_enabled_old = detection_enabled
+            detection_enabled = db_logic.intrusiondetection(video_index)
+            if detection_enabled != detection_enabled_old:
+                print("Intrusion detection", "enabled" if detection_enabled else "disabled")
         # difference between the frames
-        diff = cv2.absdiff(frame1, frame2)
-        diff_gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(diff_gray, (5, 5), 0)
-        _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
-        dilated = cv2.dilate(thresh, None, iterations=3)
-        contours, _ = cv2.findContours(
-            dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        if detection_enabled:
+            diff = cv2.absdiff(frame1, frame2)
+            diff_gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+            blur = cv2.GaussianBlur(diff_gray, (5, 5), 0)
+            _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
+            dilated = cv2.dilate(thresh, None, iterations=3)
+            contours, _ = cv2.findContours(
+                dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        for contour in contours:
-            (x, y, w, h) = cv2.boundingRect(contour)
-            if cv2.contourArea(contour) < 900:
-                continue
-            cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            cv2.putText(frame1, "INTRUSION DETECTED", (10, 60), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (217, 10, 10), 2)
-            print("INTRUSION detection!!")
+            for contour in contours:
+                (x, y, w, h) = cv2.boundingRect(contour)
+                if cv2.contourArea(contour) < 900:
+                    continue
+                cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                cv2.putText(frame1, "INTRUSION DETECTED", (10, 60), cv2.FONT_HERSHEY_SIMPLEX,
+                            1, (217, 10, 10), 2)
+                print("INTRUSION detection!!")
 
-        resized = cv2.resize(frame1,(640,480),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
-        results = model(resized, verbose=False)
-        #print(result)
+            resized = cv2.resize(frame1,(640,480),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
+            results = model(resized, verbose=False)
+            #print(result)
 
-        annotator = Annotator(resized)
+            annotator = Annotator(resized)
 
-        for r in results:
-            for box in r.boxes:
-                b = box.xyxy[0]
-                c = box.cls
-                annotator.box_label(b, f"{r.names[int(c)]} {float(box.conf):.2}")
+            for r in results:
+                for box in r.boxes:
+                    b = box.xyxy[0]
+                    c = box.cls
+                    annotator.box_label(b, f"{r.names[int(c)]} {float(box.conf):.2}")
+        else:
+            resized = cv2.resize(frame1,(640,480),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
 
 
         writer.write(resized)
