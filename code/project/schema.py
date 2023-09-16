@@ -35,3 +35,20 @@ class Session(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     user = relationship("User", back_populates="sessions")
+
+class Camera(Base):
+    __tablename__ = "cameras"
+    id = Column(Integer, primary_key=True, index=True)
+    detection_enabled = Column(Boolean, default=True)
+
+class Detection(Base):
+    __tablename__ = "detections"
+
+    id = Column(Integer, primary_key=True, index=True)
+    camera_id = Column(Integer, index=True)
+    time = Column(DateTime)
+    video = Column(String)
+    preview = Column(String)
+    notification_sent = Column(Boolean, default=False)
+    viewed = Column(Boolean, default=False)
+    description = Column(String)
