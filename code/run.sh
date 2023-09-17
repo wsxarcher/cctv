@@ -16,4 +16,6 @@ docker run -it \
     -v "$PWD/data:/app/data" \
     --mount "type=tmpfs,destination=$TMP_STREAMING" \
     -e "TMP_STREAMING=$TMP_STREAMING" \
+    -e "PUSHOVER_USER_KEY=$PUSHOVER_USER_KEY" \
+    -e "PUSHOVER_APP_TOKEN=$PUSHOVER_APP_TOKEN" \
     ${VIDEO_DEVICES[@]/#/--device=} -p $HOST_PORT:8000 marcobartoli/fp $@

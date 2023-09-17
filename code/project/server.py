@@ -98,7 +98,8 @@ async def login(
 async def alerts(request: Request, user=Depends(get_logged_user)):
     if not user:
         return RedirectResponse("/login")
-    return templates.TemplateResponse("pages/alerts.html", {"request": request})
+    detections = db_logic.detections()
+    return templates.TemplateResponse("pages/alerts.html", {"request": request, "detections": detections})
 
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -214,6 +215,15 @@ async def streaming_fragment(
     if not user:
         raise HTTPException(status_code=401, detail="Not logged it")
     file_path = os.path.join(TMP_STREAMING, os.path.basename(fragment))
+    return FileResponse(file_path)
+
+@app.get("/detections/{video}")
+async def detections_video(
+    video: str, request: Request, user=Depends(get_logged_user)
+):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged it")
+    file_path = os.path.join(cam.DATA_DETECTIONS, os.path.basename(video))
     return FileResponse(file_path)
 
 

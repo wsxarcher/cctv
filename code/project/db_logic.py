@@ -7,6 +7,7 @@ Base.metadata.create_all(bind=engine)
 
 db = scoped_session(SessionLocal)
 
+
 def create_user(username, password):
     db_user = User(username=username, password=password)
     try:
@@ -17,13 +18,20 @@ def create_user(username, password):
         db.rollback()
     return db_user
 
+
 def login(username, password, user_agent="", ip=""):
     try:
         user = db.query(User).filter_by(username=username).one()
         if user.password == password:
             token = secrets.token_hex(64)
             login_time = datetime.now(timezone.utc).replace(microsecond=0)
-            session = Session(token=token, user=user, user_agent=user_agent, ip=ip, login_time=login_time)
+            session = Session(
+                token=token,
+                user=user,
+                user_agent=user_agent,
+                ip=ip,
+                login_time=login_time,
+            )
             db.add(session)
             db.commit()
             return token
@@ -31,12 +39,14 @@ def login(username, password, user_agent="", ip=""):
         print(f"Ex {e}")
         db.rollback()
 
+
 def is_logged(token):
     try:
         session = db.query(Session).filter_by(token=token).one()
-        return session.user 
+        return session.user
     except:
         pass
+
 
 def logout(token):
     try:
@@ -44,6 +54,7 @@ def logout(token):
         db.commit()
     except:
         db.rollback()
+
 
 def logout_everywhere(username):
     try:
@@ -53,12 +64,14 @@ def logout_everywhere(username):
     except:
         db.rollback()
 
+
 def sessions(user):
     try:
         sessions = db.query(Session).filter_by(user=user).all()
         return sessions
     except:
         return []
+
 
 def intrusiondetection(camera_index: int, enable=None):
     try:
@@ -81,7 +94,7 @@ def intrusiondetection(camera_index: int, enable=None):
             return enable
     except Exception as e:
         raise e
-    
+
 
 def streamingmethod(user, streamingmethod):
     try:
@@ -89,6 +102,40 @@ def streamingmethod(user, streamingmethod):
         user.streaming_method = StreamingMethod[streamingmethod]
         db.commit()
         return streamingmethod
+    except Exception as e:
+        print(e)
+        db.rollback()
+
+
+def detections():
+    try:
+        detections = db.query(Detection).all()
+        return detections
+    except Exception as e:
+        print(e)
+
+
+def add_detection(
+    camera_id,
+    time,
+    video,
+    preview,
+    description="",
+    viewed=False,
+    notification_sent=False,
+):
+    try:
+        detection = Detection(
+            camera_id=camera_id,
+            time=time,
+            video=video,
+            preview=preview,
+            notification_sent=notification_sent,
+            viewed=viewed,
+            description=description,
+        )
+        db.add(detection)
+        db.commit()
     except Exception as e:
         print(e)
         db.rollback()

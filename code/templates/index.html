@@ -92,7 +92,11 @@
 
             window.addEventListener('focus', function() {
                 for (videojsplayer of window.videojsplayers) {
-                    videojsplayer.liveTracker.seekToLiveEdge()
+                    try {
+                        videojsplayer.liveTracker.seekToLiveEdge()
+                    } catch {
+
+                    }
                 }
             });
 
@@ -110,6 +114,16 @@
 
                 videojsplayer.liveTracker.seekToLiveEdge()
 
+                window.videojsplayers.push(videojsplayer)
+            }
+
+            window.loadmyplayerdetections = (name, src) => {
+                var videojsplayer = videojs(name, {
+                    src: src,
+                    muted: true,
+                    responsive: true,
+                    fluid: true,
+                })
                 window.videojsplayers.push(videojsplayer)
             }
 
