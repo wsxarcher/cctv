@@ -162,7 +162,7 @@ def motionDetection(video_index):
     detection_videoname = None
     detection_time = None
     detection_pipeline = (
-        "appsrc ! videoconvert ! x264enc ! mp4mux ! filesink location="
+        "appsrc ! videoconvert ! x264enc ! video/x-h264, profile=main ! mp4mux ! filesink location="
     )
 
     gst_pipeline = f"appsrc is-live=true block=true ! videoconvert ! x264enc tune=zerolatency key-int-max=1 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=5 target-duration=2 playlist-type=2"
@@ -260,13 +260,14 @@ def motionDetection(video_index):
                         print("Stop recording, no person in the last seconds")
                     detection_writer.release()
                     detection_writer = None
+                    sent = notification.send_notification(video_index, detection_time, detection_preview)
                     db_logic.add_detection(
                         video_index,
                         detection_time,
                         detection_videoname,
                         detection_preview,
+                        notification_sent=True if sent else False
                     )
-                    notification.send_notification(video_index, detection_time, detection_preview)
                     
         else:
             resized = cv2.resize(

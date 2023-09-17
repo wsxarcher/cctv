@@ -19,6 +19,7 @@ def send_notification(camera_id, time, preview_b64):
             "attachment_type": "image/jpeg",
             "url": "",
             "url_title": ""
-        })
+        }, timeout=10)
+        return True
     except Exception as e:
         print(e)
