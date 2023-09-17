@@ -1,5 +1,5 @@
-<form style="display: inline;" hx-post="/settings/intrusiondetection/{{i}}" hx-swap="outerHTML" hx-trigger="change" id="toggleform">
-    <input type="checkbox" class="btn-check" name="enable" id="intrusiondetection" autocomplete="off" {{ 'checked' if enabled else '' }}>
-    <label class="btn s-4 btn-outline-primary" for="intrusiondetection">Intrusion detection: {{ 'ON' if enabled else 'OFF' }}</label>
-    <a hx-get="/settings/intrusiondetection/{{i}}" hx-trigger="load delay:3s" hx-target="#toggleform" hx-swap="outerHTML" style="display: none;"></a>
+<form style="display: inline;" hx-post="/settings/intrusiondetection/{{i}}" hx-swap="outerHTML" hx-trigger="change" id="toggleform{{i}}">
+    <input type="checkbox" class="btn-check" name="enable" id="intrusiondetection{{i}}" autocomplete="off" {{ 'checked' if enabled else '' }}>
+    <label class="btn s-4 btn-outline-primary" for="intrusiondetection{{i}}">Intrusion detection: {{ 'ON' if enabled else 'OFF' }}</label>
+    <a hx-get="/settings/intrusiondetection/{{i}}" hx-trigger="load delay:3s" hx-target="#toggleform{{i}}" hx-swap="outerHTML" style="display: none;"></a>
 </form>

@@ -121,13 +121,16 @@ def delete_old_tmp():
 
 # Defining a function motionDetection
 def motionDetection(video_index):
-    seconds_check_settings = 1
+    seconds_check_settings = 5
     detection_enabled = db_logic.intrusiondetection(video_index)
     frame_counter = 0
-    print(f"Motion {video_index} started")
+    print(f"Motion {video_index} started on device /dev/video/{enabled_cams[video_index]}")
     print(f"Draw boxes:", DRAW_BOXES)
     # capturing video in real time
-    cap = cv2.VideoCapture(enabled_cams[video_index])
+    cap = cv2.VideoCapture(enabled_cams[video_index], cv2.CAP_V4L2)
+    if not cap.isOpened():
+        print(f"Error when opening device /dev/video/{enabled_cams[video_index]}")
+        return
     win_name = "output"
     # cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
     fps = 10

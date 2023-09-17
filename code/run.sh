@@ -1,6 +1,6 @@
 set -ex
 
-export VIDEO_DEVICES=(/dev/video4) # give user permission
+export VIDEO_DEVICES=(/dev/video4) # give user permission (use create_virtual_cams.sh to attach videos/streams)
 export HOST_PORT=8001
 export DEBUG=1
 export DRAW_BOXES=1
