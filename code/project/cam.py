@@ -77,14 +77,14 @@ def isGUI():
 def delete_old_tmp():
     for playlist in glob(os.path.join(TMP_STREAMING, "*.m3u8")):
         try:
-            print("Removing {playlist}")
+            print(f"Removing {playlist}")
             os.remove(playlist)
         except OSError:
             print("Error while deleting file old playlist")
 
     for fragment in glob(os.path.join(TMP_STREAMING, "*.ts")):
         try:
-            print("Removing {fragment}")
+            print(f"Removing {fragment}")
             os.remove(fragment)
         except OSError:
             print("Error while deleting file old fragment")
@@ -92,7 +92,7 @@ def delete_old_tmp():
 # Defining a function motionDetection
 def motionDetection(video_index):
     delete_old_tmp()
-    seconds_check_settings = 3
+    seconds_check_settings = 1
     detection_enabled = db_logic.intrusiondetection(video_index)
     frame_counter = 0
     print(f"Motion {video_index} started")

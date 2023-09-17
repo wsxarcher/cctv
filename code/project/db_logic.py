@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
+from sqlalchemy.orm import scoped_session
 from .database import *
 from .schema import *
 
 Base.metadata.create_all(bind=engine)
 
-db = SessionLocal()
+db = scoped_session(SessionLocal)
 
 def create_user(username, password):
     db_user = User(username=username, password=password)
@@ -47,7 +48,7 @@ def logout(token):
 def logout_everywhere(username):
     try:
         user = db.query(User).filter_by(username=username).one()
-        db.query(Session).filter_by(user=user).delete(synchronize_session=False)
+        db.query(Session).filter_by(user=user).delete()
         db.commit()
     except:
         db.rollback()
@@ -80,3 +81,14 @@ def intrusiondetection(camera_index: int, enable=None):
             return enable
     except Exception as e:
         raise e
+    
+
+def streamingmethod(user, streamingmethod):
+    try:
+        user = db.query(User).filter_by(id=user.id).one()
+        user.streaming_method = StreamingMethod[streamingmethod]
+        db.commit()
+        return streamingmethod
+    except Exception as e:
+        print(e)
+        db.rollback()

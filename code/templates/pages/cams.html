@@ -12,25 +12,21 @@
                 </h3>
             </div>
             <div class="card-body mx-0 px-0 pt-0 pb-1">
+                {% if streamingmethod == "hls" %}
                 <video-js id="cam{{i}}" class="vjs-default-skin" controls playsinline>
-                    <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL">
+                    <source src="/streaming/{{i}}.m3u8" type="application/x-mpegURL" >
                 </video-js>
+                {% elif streamingmethod == "mjpeg" %}
+                    <img src="/cam/{{i}}" class="img-fluid streaming">
+                {% else %}
+                    <h3>UNSUPPORTED STREAMING METHOD</h3>
+                {% endif %}
             </div>
           </div>
-        <script>
-            window.videojsplayers.push(videojs('cam{{i}}', {
-                src: "/streaming/{{i}}.m3u8",
-                type: "application/x-mpegURL",
-                autoplay: true,
-                muted: true,
-                responsive: true,
-                fluid: true,
-                liveui: true,
-                html5: { hls: { overrideNative: true }, nativeVideoTracks: false, nativeAudioTracks: false, nativeTextTracks: false }
-            }))
-        </script>
-        <!--<img src="/cam/{{i}}" class="img-fluid streaming">-->
     </div>
     <div class="col-md-2"></div>
 </div>
+<script>
+    window.loadmyplayer("cam{{i}}", "/streaming/{{i}}.m3u8");
+</script>
 {% endfor %}

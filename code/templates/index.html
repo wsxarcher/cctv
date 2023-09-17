@@ -88,13 +88,30 @@
                     }
                     window.videojsplayers = []
                 }
-
-                window.addEventListener('focus', function() {
-                    for (videojsplayer of window.videojsplayers) {
-                        videojsplayer.liveTracker.seekToLiveEdge()
-                    }
-                });
             });
+
+            window.addEventListener('focus', function() {
+                for (videojsplayer of window.videojsplayers) {
+                    videojsplayer.liveTracker.seekToLiveEdge()
+                }
+            });
+
+            window.loadmyplayer = (name, src) => {
+                var videojsplayer = videojs(name, {
+                    src: src,
+                    type: "application/x-mpegURL",
+                    autoplay: true,
+                    muted: true,
+                    responsive: true,
+                    fluid: true,
+                    liveui: true,
+                    html5: { hls: { overrideNative: true }, nativeVideoTracks: false, nativeAudioTracks: false, nativeTextTracks: false }
+                })
+
+                videojsplayer.liveTracker.seekToLiveEdge()
+
+                window.videojsplayers.push(videojsplayer)
+            }
 
             window.videojsplayers = []
         </script>

@@ -153,7 +153,7 @@ async def streamingmethod(
     if not method:
         method = user.streaming_method.name
     else:
-        method = user.streaming_method.name
+        method = db_logic.streamingmethod(user, method)
     return templates.TemplateResponse("fragments/streamingmethod.html", { "request": request, "streamingmethods": schema.StreamingMethod._member_names_, "streamingmethod": method })
 
 @app.post("/settings/intrusiondetection/{i}", response_class=HTMLResponse)
@@ -183,8 +183,9 @@ async def getintrusiondetection(
 async def cams(request: Request, user=Depends(get_logged_user)):
     if not user:
         return RedirectResponse("/login")
+    method = user.streaming_method.name
     return templates.TemplateResponse(
-        "pages/cams.html", {"request": request, "number": cam.number_of_cams}
+        "pages/cams.html", {"request": request, "number": cam.number_of_cams, "streamingmethod": method }
     )
 
 
@@ -192,16 +193,18 @@ async def cams(request: Request, user=Depends(get_logged_user)):
 async def streaming_playlist(i: int, request: Request, user=Depends(get_logged_user)):
     if not user:
         raise HTTPException(status_code=401, detail="Not logged it")
-    path = TMP_STREAMING + "/" + str(i) + ".m3u8"
+    path = os.path.join(TMP_STREAMING, str(i) + ".m3u8")
     base_url = str(request.base_url)
     # ngrok https is transparent
     if "ngrok" in base_url or "devtunnels" in base_url:
         base_url = base_url.replace("http://", "https://")
-    print(base_url)
-    with open(path, "r") as f:
-        content = f.read()
-        content = content.replace(cam.SEGMENTS_URL, base_url + "streaming")
-        return Response(content=content, media_type="application/vnd")
+    try:
+        with open(path, "r") as f:
+            content = f.read()
+            content = content.replace(cam.SEGMENTS_URL, base_url + "streaming")
+            return Response(content=content, media_type="application/vnd")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404)
 
 
 @app.get("/streaming/{fragment}")
