@@ -25,6 +25,7 @@ TMP_STREAMING = os.environ.get("TMP_STREAMING")
 async def lifespan(app):
     print("Starting")
     cam_workers = []
+    cam.delete_old_tmp()
     for i in range(cam.number_of_cams):
         t = Thread(target=cam.motionDetection, args=(i,))
         t.start()
@@ -260,6 +261,7 @@ def main():
         log_level="info",
         reload=reload,
         workers=workers,
+        timeout_graceful_shutdown=2
     )
 
 

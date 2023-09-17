@@ -50,6 +50,8 @@ for i in range(number_of_cams):
 stop_worker = manager.list([False] * number_of_cams)
 IS_GUI = bool(os.environ.get("DISPLAY"))
 
+DRAW_BOXES = os.environ.get("DRAW_BOXES", 'False').lower() in ('true', '1', 't')
+
 TMP_STREAMING = os.environ.get("TMP_STREAMING")
 DATA_DETECTIONS = "./data/detections/"
 
@@ -119,11 +121,11 @@ def delete_old_tmp():
 
 # Defining a function motionDetection
 def motionDetection(video_index):
-    delete_old_tmp()
     seconds_check_settings = 1
     detection_enabled = db_logic.intrusiondetection(video_index)
     frame_counter = 0
     print(f"Motion {video_index} started")
+    print(f"Draw boxes:", DRAW_BOXES)
     # capturing video in real time
     cap = cv2.VideoCapture(enabled_cams[video_index])
     win_name = "output"
@@ -168,7 +170,7 @@ def motionDetection(video_index):
     gst_pipeline = f"appsrc is-live=true block=true ! videoconvert ! x264enc tune=zerolatency key-int-max=1 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=5 target-duration=2 playlist-type=2"
     writer = cv2.VideoWriter(gst_pipeline, 0, 10, (640, 480))
     if not writer.isOpened():
-        print("video writer failed")
+        print("HLS video writer failed on camera", video_index)
 
     while cap.isOpened():
         if frame_counter % fps * seconds_check_settings == 0:
@@ -177,7 +179,7 @@ def motionDetection(video_index):
             if detection_enabled != detection_enabled_old:
                 print(
                     "Intrusion detection",
-                    "enabled" if detection_enabled else "disabled",
+                    "enabled" if detection_enabled else "disabled", "on camera", video_index
                 )
         # difference between the frames
         if detection_enabled:
@@ -191,19 +193,20 @@ def motionDetection(video_index):
             )
 
             for contour in contours:
-                (x, y, w, h) = cv2.boundingRect(contour)
-                if cv2.contourArea(contour) < 900:
-                    continue
-                cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.putText(
-                    frame1,
-                    "MOVEMENT DETECTED",
-                    (10, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (217, 10, 10),
-                    2,
-                )
+                if DRAW_BOXES:
+                    (x, y, w, h) = cv2.boundingRect(contour)
+                    if cv2.contourArea(contour) < 900:
+                        continue
+                    cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.putText(
+                        frame1,
+                        "MOVEMENT DETECTED",
+                        (10, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1,
+                        (217, 10, 10),
+                        2,
+                    )
 
             resized = cv2.resize(
                 frame1, (640, 480), fx=0, fy=0, interpolation=cv2.INTER_CUBIC
@@ -216,14 +219,15 @@ def motionDetection(video_index):
                 for box in r.boxes:
                     b = box.xyxy[0]
                     c = box.cls
-                    annotator.box_label(b, f"{r.names[int(c)]} {float(box.conf):.2}")
+                    if DRAW_BOXES:
+                        annotator.box_label(b, f"{r.names[int(c)]} {float(box.conf):.2}")
                     #print(f"{r.names[int(c)]} {float(box.conf):.2}")
                     if (
                         r.names[int(c)] == "person"
                         and float(box.conf) >= detection_person_treshold
                     ):
                         if not detection_writer:
-                            print("Person detected over treshold, starting to record")
+                            print("Person detected over treshold, starting to record on camera", video_index)
                             detection_videoname = str(uuid.uuid4()) + ".mp4"
                             pipeline = (
                                 detection_pipeline
@@ -241,7 +245,7 @@ def motionDetection(video_index):
                             )
                             detection_frames_since_identification = 0
                         else:
-                            print("Person detected, keep recording")
+                            print("Person detected, keep recording on camera", video_index)
                             detection_frames_since_identification = 0
             if detection_writer:
                 detection_writer.write(resized)
@@ -255,9 +259,9 @@ def motionDetection(video_index):
                 ) >= detection_max_seconds_no_identification
                 if over_max_seconds or over_last_no_identification:
                     if over_max_seconds:
-                        print("Stop recording, max time reached")
+                        print("Stop recording, max time reached on camera", video_index)
                     if over_last_no_identification:
-                        print("Stop recording, no person in the last seconds")
+                        print("Stop recording, no person in the last seconds on camera", video_index)
                     detection_writer.release()
                     detection_writer = None
                     sent = notification.send_notification(video_index, detection_time, detection_preview)
@@ -279,7 +283,7 @@ def motionDetection(video_index):
         # cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
 
         if stop_worker[video_index]:
-            print("Stopping worker")
+            print("Stopping worker camera", video_index)
             # for q in shared_frames_all[video_index]:
             #    q.task_done()
             # for q in shared_frames_all[video_index]:
@@ -326,7 +330,7 @@ def shutdown(threads):
 
 
 def main():
-    motionDetection(4)
+    pass
 
 
 if __name__ == "__main__":
