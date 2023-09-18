@@ -24,7 +24,7 @@ do
         ffmpeg -stream_loop -1 -re -i "$SOURCE" -vcodec rawvideo -threads 0 -f v4l2 "$VIDEO_DEV" &
     else
         # MJPEG
-        ffmpeg -use_wallclock_as_timestamps 1 -i "$SOURCE" -vf "format=yuv420p,setpts=PTS-STARTPTS" -vsync 0 -vcodec rawvideo -threads 0 -f v4l2 "$VIDEO_DEV" &
+        ffmpeg -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 10 -use_wallclock_as_timestamps 1 -i "$SOURCE" -vf "format=yuv420p,setpts=PTS-STARTPTS" -vsync 0 -vcodec rawvideo -threads 0 -f v4l2 "$VIDEO_DEV" &
     fi
 done
 
