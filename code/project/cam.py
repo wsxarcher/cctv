@@ -166,9 +166,8 @@ def motionDetection(video_index):
     detection_max_seconds_no_identification = 4
     detection_videoname = None
     detection_time = None
-    detection_pipeline = (
-        "appsrc ! videoconvert ! x264enc ! video/x-h264, profile=main ! mp4mux ! filesink location="
-    )
+    def detection_pipeline(file, description):
+        return f"appsrc ! videoconvert ! x264enc ! video/x-h264, profile=main ! taginject tags=\"title=\\\"{description}\\\"\" ! mp4mux ! filesink location={file}"
 
     gst_pipeline = f"appsrc is-live=true block=true ! videoconvert ! x264enc tune=zerolatency key-int-max=1 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=5 target-duration=2 playlist-type=2"
     writer = cv2.VideoWriter(gst_pipeline, 0, 10, (640, 480))
@@ -232,10 +231,11 @@ def motionDetection(video_index):
                         if not detection_writer:
                             print("Person detected over treshold, starting to record on camera", video_index)
                             detection_videoname = str(uuid.uuid4()) + ".mp4"
+                            detection_time = datetime.now(timezone.utc).replace(
+                                microsecond=0
+                            )
                             pipeline = (
-                                detection_pipeline
-                                + DATA_DETECTIONS
-                                + detection_videoname
+                                detection_pipeline(os.path.join(DATA_DETECTIONS, detection_videoname), f"Intrusion detected on camera {video_index} at {detection_time}")
                             )
                             detection_writer = cv2.VideoWriter(
                                 pipeline, cv2.CAP_GSTREAMER, 0, 10, (640, 480)
@@ -243,9 +243,6 @@ def motionDetection(video_index):
                             detection_writer_frames = 0
                             retval, buffer = cv2.imencode(".jpg", resized)
                             detection_preview = base64.b64encode(buffer).decode()
-                            detection_time = datetime.now(timezone.utc).replace(
-                                microsecond=0
-                            )
                             detection_frames_since_identification = 0
                         else:
                             print("Person detected, keep recording on camera", video_index)
