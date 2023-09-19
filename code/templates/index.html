@@ -64,7 +64,7 @@
             });
 
             document.body.addEventListener('htmx:confirm', function(evt) {
-                if (evt.detail.elt.getAttribute("hx-delete") == "/session") {
+                if (evt.detail.elt.getAttribute("hx-delete") == "/session" || evt.detail.elt.getAttribute("hx-delete") == "/alert") {
                     evt.preventDefault();
                     Swal.fire({
                         title: "Are you sure?",

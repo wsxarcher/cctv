@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy.orm import scoped_session
+from sqlalchemy.sql.expression import desc
 from .database import *
 from .schema import *
 
@@ -109,7 +110,7 @@ def streamingmethod(user, streamingmethod):
 
 def detections():
     try:
-        detections = db.query(Detection).all()
+        detections = db.query(Detection).order_by(desc(Detection.time)).all()
         return detections
     except Exception as e:
         print(e)
@@ -135,6 +136,15 @@ def add_detection(
             description=description,
         )
         db.add(detection)
+        db.commit()
+    except Exception as e:
+        print(e)
+        db.rollback()
+
+
+def delete_detection(id):
+    try:
+        db.query(Detection).filter_by(id=id).delete()
         db.commit()
     except Exception as e:
         print(e)

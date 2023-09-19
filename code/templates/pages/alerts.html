@@ -1,13 +1,18 @@
 <div class="accordion" id="accordionDetections">
   {% for detection in detections %}
-  <div class="accordion-item">
+  <div class="accordion-item" id="accordion{{loop.index}}">
     <h2 class="accordion-header" id="heading{{ loop.index }}">
       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
         aria-expanded="{{ 'false' if detection.viewed else 'true' }}" aria-controls="collapse{{loop.index}}">
-        Intrusion detected on camera {{ detection.camera_id }} at {{ detection.time }}
+        Intrusion detected on camera {{ detection.camera_id }} at {{ detection.time }} &nbsp;&nbsp;&nbsp;
+        <a hx-delete="/alert"  style="float:right"
+        href="#" hx-vals='{"id": "{{detection.id}}"}' hx-swap="outerHTML" hx-target="#accordion{{loop.index}}" class="btn btn-danger">
+        Delete
+        </a>
       </button>
+
     </h2>
-    <div id="collapse{{ loop.index }}" class="accordion-collapse collapse show" aria-labelledby="heading{{ loop.index }}"
+    <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {{ "show" if loop.index == 1 else "" }}" aria-labelledby="heading{{ loop.index }}"
       data-bs-parent="#accordionDetections">
       <div class="accordion-body">
         <video-js id="detection{{ loop.index }}" class="vjs-default-skin" preload="auto" controls playsinline poster="data:image/png;base64,{{ detection.preview }}">

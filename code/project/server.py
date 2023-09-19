@@ -102,6 +102,13 @@ async def alerts(request: Request, user=Depends(get_logged_user)):
     detections = db_logic.detections()
     return templates.TemplateResponse("pages/alerts.html", {"request": request, "detections": detections})
 
+@app.delete("/alert", response_class=HTMLResponse)
+async def alert(request: Request, user=Depends(get_logged_user), id: int = Form()):
+    if not user:
+        return RedirectResponse("/login")
+    db_logic.delete_detection(id)
+    return Response(content="")
+
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings(
