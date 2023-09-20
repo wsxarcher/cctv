@@ -5,12 +5,14 @@ export HOST_PORT=8001
 export DEBUG=1
 export DRAW_BOXES=1
 export TMP_STREAMING="/tmp/streaming/"
+export DETECTION_CLASSES="person,cat,dog"
 
 docker buildx build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t marcobartoli/fp .
 docker rm fp_container || true
 docker run -it \
     --name fp_container \
     -e "DEBUG=$DEBUG" \
+    -e "DETECTION_CLASSES=$DETECTION_CLASSES" \
     -v "$PWD/project:/app/project" \
     -v "$PWD/static:/app/static" \
     -v "$PWD/templates:/app/templates" \

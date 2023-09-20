@@ -17,8 +17,7 @@
     </div>
     <div class="col-md-8">
         <h3>Streaming method</h3>
-        <form hx-post="/settings/streamingmethod" hx-swap="outerHTML" hx-trigger="load">
-        </form>
+        {% include 'fragments/streamingmethod.html' %}
     </div>
     <div class="col-md-2">
 
@@ -72,7 +71,7 @@
     </div>
     <div class="col-md-8 mt-4">
         <h3>Change password</h3>
-        <form hx-post="/settings/passwordchange" hx-swap="outerHTML" hx-trigger="load"></form>
+        {% include 'fragments/passwordchange.html' %}
     </div>
     <div class="col-md-2"></div>
 </div>

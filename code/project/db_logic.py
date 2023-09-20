@@ -8,6 +8,10 @@ Base.metadata.create_all(bind=engine)
 
 db = scoped_session(SessionLocal)
 
+def init_db():
+    create_user("admin", "password")
+    create_user("guest", "password")
+    # logout_everywhere("admin")
 
 def create_user(username, password):
     db_user = User(username=username, password=password)
@@ -103,6 +107,17 @@ def streamingmethod(user, streamingmethod):
         user.streaming_method = StreamingMethod[streamingmethod]
         db.commit()
         return streamingmethod
+    except Exception as e:
+        print(e)
+        db.rollback()
+
+def password(user, oldpassword, newpassword):
+    try:
+        user = db.query(User).filter_by(id=user.id).one()
+        if user.password == oldpassword:
+            user.password = newpassword
+            db.commit()
+            return user.password
     except Exception as e:
         print(e)
         db.rollback()

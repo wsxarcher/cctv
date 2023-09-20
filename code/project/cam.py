@@ -15,6 +15,8 @@ import itertools
 from glob import glob
 from multiprocessing.managers import SyncManager
 from queue import PriorityQueue
+import subprocess
+import shutil
 from . import notification
 
 # import manager dict multiprocessing
@@ -159,15 +161,19 @@ def motionDetection(video_index):
 
     detection_writer = None
     detection_preview = None
-    detection_person_treshold = 0.7
+    detection_treshold = 0.69
     detection_writer_frames = 0
     detection_frames_since_identification = 0
     detection_max_seconds = 20
     detection_max_seconds_no_identification = 4
     detection_videoname = None
     detection_time = None
-    def detection_pipeline(file, description):
-        return f"appsrc ! videoconvert ! x264enc ! video/x-h264, profile=main ! taginject tags=\"title=\\\"{description}\\\"\" ! mp4mux ! filesink location={file}"
+    detection_objects = set()
+    detection_on = os.environ.get("DETECTION_CLASSES", "person,cat,dog") # yolo classes
+    detection_on = [x.strip().lower() for x in detection_on.split(",")]
+    print("Detection on:", detection_on)
+    def detection_pipeline(file):
+        return f"appsrc ! videoconvert ! x264enc ! video/x-h264, profile=main ! mp4mux ! filesink location={file}"
 
     gst_pipeline = f"appsrc is-live=true block=true ! videoconvert ! x264enc tune=zerolatency key-int-max=1 ! h264parse ! hlssink3 location={TMP_STREAMING}/segment-{video_index}-%05d.ts playlist-location={TMP_STREAMING}/{video_index}.m3u8 playlist-root={SEGMENTS_URL} max-files=5 target-duration=2 playlist-type=2"
     writer = cv2.VideoWriter(gst_pipeline, 0, 10, (640, 480))
@@ -224,19 +230,22 @@ def motionDetection(video_index):
                     if DRAW_BOXES:
                         annotator.box_label(b, f"{r.names[int(c)]} {float(box.conf):.2}")
                     #print(f"{r.names[int(c)]} {float(box.conf):.2}")
+                    class_name = r.names[int(c)]
                     if (
-                        r.names[int(c)] == "person"
-                        and float(box.conf) >= detection_person_treshold
+                        class_name.lower() in detection_on
+                        and float(box.conf) >= detection_treshold
                     ):
                         if not detection_writer:
-                            print("Person detected over treshold, starting to record on camera", video_index)
+                            print(f"{class_name.capitalize()} detected over treshold, starting to record on camera", video_index)
+                            detection_objects.add(class_name)
                             detection_videoname = str(uuid.uuid4()) + ".mp4"
+                            detection_filepath = os.path.join(DATA_DETECTIONS, detection_videoname)
                             detection_time = datetime.now(timezone.utc).replace(
                                 microsecond=0
                             )
-                            pipeline = (
-                                detection_pipeline(os.path.join(DATA_DETECTIONS, detection_videoname), f"Intrusion detected on camera {video_index} at {detection_time}")
-                            )
+
+                            pipeline = detection_pipeline(detection_filepath)
+
                             detection_writer = cv2.VideoWriter(
                                 pipeline, cv2.CAP_GSTREAMER, 0, 10, (640, 480)
                             )
@@ -245,7 +254,8 @@ def motionDetection(video_index):
                             detection_preview = base64.b64encode(buffer).decode()
                             detection_frames_since_identification = 0
                         else:
-                            print("Person detected, keep recording on camera", video_index)
+                            print(f"{class_name.capitalize()} detected, keep recording on camera", video_index)
+                            detection_objects.add(class_name)
                             detection_frames_since_identification = 0
             if detection_writer:
                 detection_writer.write(resized)
@@ -261,17 +271,27 @@ def motionDetection(video_index):
                     if over_max_seconds:
                         print("Stop recording, max time reached on camera", video_index)
                     if over_last_no_identification:
-                        print("Stop recording, no person in the last seconds on camera", video_index)
+                        print("Stop recording, no object in the last seconds on camera", video_index)
                     detection_writer.release()
                     detection_writer = None
+                    description =  f"Intrusion detected on camera {video_index} at {detection_time} - Detected: " + ",".join(detection_objects)
+                    try:
+                        detection_filepath_metadata = detection_filepath + "_metadata.mp4"
+                        subprocess.check_call(['ffmpeg', '-i', detection_filepath, '-metadata', f'title=\"{description}\"', '-codec', 'copy', detection_filepath_metadata], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        shutil.move(detection_filepath_metadata, detection_filepath)
+                    except Exception as e:
+                        print("Error running ffmpeg to add metadata")
+                        print(e)
                     sent = notification.send_notification(video_index, detection_time, detection_preview)
                     db_logic.add_detection(
                         video_index,
                         detection_time,
                         detection_videoname,
                         detection_preview,
-                        notification_sent=True if sent else False
+                        notification_sent=True if sent else False,
+                        description=description,
                     )
+                    detection_objects = set()
                     
         else:
             resized = cv2.resize(

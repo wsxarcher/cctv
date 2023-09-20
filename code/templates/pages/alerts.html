@@ -1,10 +1,19 @@
+{% if not detections %}
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+
+  <div>
+    &nbsp;No alerts captured yet
+  </div>
+</div>
+{% endif %}
 <div class="accordion" id="accordionDetections">
   {% for detection in detections %}
   <div class="accordion-item" id="accordion{{loop.index}}">
     <h2 class="accordion-header" id="heading{{ loop.index }}">
       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
         aria-expanded="{{ 'false' if detection.viewed else 'true' }}" aria-controls="collapse{{loop.index}}">
-        Intrusion detected on camera {{ detection.camera_id }} at {{ detection.time }} &nbsp;&nbsp;&nbsp;
+        {{ detection.description }} &nbsp;&nbsp;&nbsp;
         <a hx-delete="/alert"  style="float:right"
         href="#" hx-vals='{"id": "{{detection.id}}"}' hx-swap="outerHTML" hx-target="#accordion{{loop.index}}" class="btn btn-danger">
         Delete
@@ -18,7 +27,6 @@
         <video-js id="detection{{ loop.index }}" class="vjs-default-skin" preload="auto" controls playsinline poster="data:image/png;base64,{{ detection.preview }}">
           <source src="/detections/{{ detection.video }}" type="video/mp4" />
         </video-js>
-        <p>{{ detection.description }}</p>
       </div>
     </div>
   </div>

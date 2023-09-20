@@ -41,10 +41,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
-db_logic.create_user("admin", "password")
-db_logic.create_user("guest", "password")
-# db_logic.logout_everywhere("admin")
-
 
 def get_logged_user(token: str | None = Cookie(default=None)):
     if user := db_logic.is_logged(token):
@@ -133,7 +129,7 @@ async def settings(
         0, sessions.pop(list(map(lambda s: s["token"] == token, sessions)).index(True))
     )
     return templates.TemplateResponse(
-        "pages/settings.html", {"request": request, "sessions": sessions, "username": user.username }
+        "pages/settings.html", {"request": request, "sessions": sessions, "username": user.username, "streamingmethods": schema.StreamingMethod._member_names_, "streamingmethod": user.streaming_method.name }
     )
 
 @app.post("/settings/passwordchange", response_class=HTMLResponse)
@@ -146,8 +142,13 @@ async def passwordchange(
     if not user:
         raise HTTPException(status_code=401, detail="Not logged it")
     error = None
-    if password == "a":
-        error = "AA"
+    if old is None and password is None:
+        pass
+    elif old != "" and password != "":
+        if not db_logic.password(user, old, password):
+            error = "Error changing password"
+    else:
+        error = "Fields are not correct"
     return templates.TemplateResponse("fragments/passwordchange.html", { "request": request, "poperror": error })
     
     
@@ -254,8 +255,9 @@ async def stream(
         media_type="multipart/x-mixed-replace;boundary=frame",
     )
 
-
 def main():
+    db_logic.init_db()
+
     workers = os.environ.get("WORKERS", 4)
     if os.environ.get("DEBUG") == "1":
         reload = True

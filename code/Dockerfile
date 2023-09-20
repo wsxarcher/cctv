@@ -28,18 +28,20 @@ RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get install -y build-essential libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools
 RUN apt-get install -y libpango1.0-dev libgraphene-1.0-dev libgtk-4-dev libcsound64-6.0 libcsound64-dev libdav1d-dev
 RUN apt-get install -y cuda-toolkit-11-7 libcudnn8=8.5.0.96-1+cuda11.7 cuda-cupti-11-7 libnccl2=2.14.3-1+cuda11.7
+RUN apt-get install -y ffmpeg
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=1.72.1 -y
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-COPY gst-plugins-rs-main.tar.gz /
-RUN tar -xvf gst-plugins-rs-main.tar.gz
+RUN git clone --recursive https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git
 
-WORKDIR /gst-plugins-rs-main
+WORKDIR /gst-plugins-rs
+
+RUN git checkout b12278e33452e2ddf5a8acb862c4f4695d562517
 
 ENV CSOUND_LIB_DIR=/usr/lib/x86_64-linux-gnu/
-RUN make install
+RUN make install -j8
 
 ARG POETRY_VERSION
 RUN pip install poetry==$POETRY_VERSION
