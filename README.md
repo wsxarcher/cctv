@@ -26,8 +26,8 @@ Default credentials: `admin:password`
 
 # Sceenshots
 
-[home.png](./docs/home.png)
+![home.png](./docs/home.png)
 
-[alerts.png](./docs/alerts.png)
+![alerts.png](./docs/alerts.png)
 
-[settings.png](./docs/settings.png)
+![settings.png](./docs/settings.png)
