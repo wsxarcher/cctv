@@ -152,6 +152,8 @@ def add_detection(
         )
         db.add(detection)
         db.commit()
+        db.refresh(detection)
+        return detection.id
     except Exception as e:
         print(e)
         db.rollback()
